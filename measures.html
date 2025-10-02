@@ -1,0 +1,962 @@
+ 
+ 
+ 
+ 
+
+
+
+                <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة تحليل بيانات الطقس الحقيقية</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            direction: rtl;
+        }
+        
+        /* Navigation Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            background: linear-gradient(to left, #2575fc, #6a11cb);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            padding: 0 20px;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .nav-logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-logo i {
+            margin-left: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            min-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-link {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s;
+        }
+        
+        .dropdown-link:hover {
+            background-color: #f8f9fa;
+            color: #2575fc;
+        }
+        
+        .dropdown-link:last-child {
+            border-bottom: none;
+        }
+        
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+        }
+        
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+        
+        /* Main container adjustments for navbar */
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin-top: 90px; /* Space for fixed navbar */
+        }
+        
+        header {
+            background: linear-gradient(to left, #2575fc, #6a11cb);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 20px 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 15px 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+            }
+            
+            /* Mobile navbar styles */
+            .hamburger {
+                display: flex;
+            }
+            
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                right: -100%;
+                background: linear-gradient(to left, #2575fc, #6a11cb);
+                width: 100%;
+                height: calc(100vh - 70px);
+                flex-direction: column;
+                align-items: center;
+                padding-top: 40px;
+                gap: 20px;
+                transition: right 0.3s ease;
+            }
+            
+            .nav-menu.active {
+                right: 0;
+            }
+            
+            .nav-link {
+                font-size: 1.1rem;
+                padding: 15px 20px;
+            }
+            
+            .dropdown {
+                position: static;
+                background: rgba(255, 255, 255, 0.1);
+                min-width: 200px;
+                margin-top: 10px;
+                display: none;
+            }
+            
+            .dropdown.active {
+                display: block;
+            }
+            
+            .dropdown-link {
+                color: white;
+                border-bottom-color: rgba(255, 255, 255, 0.2);
+            }
+            
+            .dropdown-link:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 15px 10px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .subtitle {
+                font-size: 0.85rem;
+            }
+            
+            .content {
+                padding: 10px 8px;
+            }
+            
+            .container {
+                margin-top: 80px;
+            }
+        }
+        
+        .input-section, .output-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        h2 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eaeaea;
+            font-size: 1.3rem;
+        }
+        
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 1.2rem;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 0.95rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s;
+            text-align: right;
+        }
+        
+        input:focus, select:focus {
+            border-color: #2575fc;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 117, 252, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(to left, #2575fc, #6a11cb);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .result-box {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1rem;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .detected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .not-detected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            direction: rtl;
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 768px) {
+            .data-table {
+                font-size: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .data-table {
+                font-size: 0.7rem;
+            }
+        }
+        
+        .data-table th, .data-table td {
+            padding: 8px 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background-color: #2575fc;
+            color: white;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .criteria {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #e7f1ff;
+            border-radius: 8px;
+            border-right: 4px solid #2575fc;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .criteria {
+                font-size: 0.85rem;
+            }
+        }
+        
+        .criteria h3 {
+            margin-bottom: 10px;
+            color: #2575fc;
+            font-size: 1.1rem;
+        }
+        
+        .criteria ul {
+            padding-right: 15px;
+        }
+        
+        .criteria li {
+            margin-bottom: 8px;
+            list-style-position: inside;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .location-info {
+            background-color: #e7f1ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2575fc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        /* Mobile-specific improvements */
+        .mobile-table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-table-container {
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+        }
+        
+        /* Icon styles */
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
+        .icon-home { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>'); }
+        .icon-analysis { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>'); }
+        .icon-data { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'); }
+        .icon-about { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'); }
+        .icon-contact { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>'); }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <span>محلل الطقس الذكي</span>
+                <i>🌤️</i>
+            </a>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="PredictMAr.html" class="nav-link ">
+                        <span class="icon icon-home"></span>
+                        الرئيسية
+                    </a>
+                </li>
+                        <li class="nav-item">
+                    <a href="PredictMAr.html" class="nav-link ">
+                        <span class="icon icon-home"></span>
+                        التبئو بالإصابة
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="measures.html" class="nav-link active">
+                        <span class="icon icon-analysis"></span>
+ الظروف الملائمة للإصابة                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="icon icon-data"></span>
+                        التقارير
+                        <span style="margin-right: 5px;">▼</span>
+                    </a>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-link">تقرير الصدأ البرتقالي</a>
+                        <a href="#" class="dropdown-link">تقرير الظروف الجوية</a>
+                        <a href="#" class="dropdown-link">التقارير التاريخية</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="icon icon-about"></span>
+                        عن الأداة
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="icon icon-contact"></span>
+                        اتصل بنا
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Main Content -->
+    <div class="container">
+        <header>
+            <h1 class="arabic-text">الظروف الملائمة للإصابةبالأصداء فى القمح</h1>
+        </header>
+        
+        <div class="content">
+        
+                <div class="criteria">
+                    <h3 class="arabic-text">معاييرالإصابة  بالصدأ البرتقالى</h3>
+                    <ul class="arabic-text">
+                        <li>درجة الحرارة العظمى أقل من أو تساوى <span class="highlight">25°C</span></li>
+                        <li>درجة الحرارة الصغرى أقل من أو تساوى: <span class="highlight">14°C</span></li>
+                        <li>الرطوبة: أكبر من او تساوى <span class="highlight">70%</span></li>
+                        <li>سرعة الرياح: أكبر من أو تساوى <span class="highlight">30 كم/ساعة</span></li>
+                        <li>ابتلال الأوراق: أقل من أو يساوى <span class="highlight">30</span></li>
+                    </ul>
+                    <p class="arabic-text">يجب استيفاء جميع الشروط لمدة <strong>3 أيام متتالية</strong> لاحتسابها كوحدة واحدة.</p>
+                </div>
+
+                 <div class="criteria">
+                    <h3 class="arabic-text">معاييرالإصابة  بالصدأ الأصفر</h3>
+                    <ul class="arabic-text">
+                        <li>درجة الحرارة العظمى أقل من أو تساوى <span class="highlight">15°C</span></li>
+                        <li>درجة الحرارة الصغرى أقل من أو تساوى: <span class="highlight">9°C</span></li>
+                        <li>الرطوبة: أكبر من او تساوى <span class="highlight">70%</span></li>
+                        <li>سرعة الرياح: أكبر من أو تساوى <span class="highlight">30 كم/ساعة</span></li>
+                        <li>ابتلال الأوراق: أقل من أو يساوى <span class="highlight">30</span></li>
+                    </ul>
+                    <p class="arabic-text">يجب استيفاء جميع الشروط لمدة <strong>3 أيام متتالية</strong> لاحتسابها كوحدة واحدة.</p>
+                </div>
+            
+
+        </div>
+    </div>
+    <script>
+        // Navigation functionality
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const dropdowns = document.querySelectorAll('.dropdown');
+
+        // Toggle mobile menu
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking on a link
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                }
+                
+                // Set active link
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Handle dropdowns
+                const dropdown = link.nextElementSibling;
+                if (dropdown && dropdown.classList.contains('dropdown')) {
+                    dropdowns.forEach(d => d.classList.remove('active'));
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-item')) {
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // متغيرات للتخزين
+        let userLatitude = null;
+        let userLongitude = null;
+        let weatherData = [];
+
+        // عناصر واجهة المستخدم
+        const locationText = document.getElementById('location-text');
+        const locationBtn = document.getElementById('location-btn');
+        const fetchWeatherBtn = document.getElementById('fetch-weather-btn');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const statusMessage = document.getElementById('status-message');
+        const unitsInput = document.getElementById('units');
+
+        // وظيفة للحصول على موقع المستخدم
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+
+                        locationText.textContent = `موقعك: خط العرض ${userLatitude.toFixed(4)}، خط الطول ${userLongitude.toFixed(4)}`;
+                        fetchWeatherBtn.disabled = false;
+                        showStatus('تم تحديد موقعك بنجاح', 'success');
+                    },
+                    function(error) {
+                        userLatitude = 30.0444;
+                        userLongitude = 31.2357;
+
+                        locationText.textContent = `استخدام موقع افتراضي (القاهرة) بسبب: ${getLocationError(error)}`;
+                        fetchWeatherBtn.disabled = false;
+                        showStatus('تم استخدام موقع افتراضي (القاهرة)', 'warning');
+                    }
+                );
+            } else {
+                userLatitude = 30.0444;
+                userLongitude = 31.2357;
+
+                locationText.textContent = 'المتصفح لا يدعم تحديد الموقع. استخدام موقع افتراضي (القاهرة)';
+                fetchWeatherBtn.disabled = false;
+                showStatus('تم استخدام موقع افتراضي (القاهرة)', 'warning');
+            }
+        }
+
+        function getLocationError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED: return "تم رفض الإذن بالوصول إلى الموقع";
+                case error.POSITION_UNAVAILABLE: return "معلومات الموقع غير متاحة";
+                case error.TIMEOUT: return "انتهت مهلة طلب الموقع";
+                default: return "حدث خطأ غير معروف";
+            }
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            statusMessage.style.display = 'block';
+
+            setTimeout(() => { statusMessage.style.display = 'none'; }, 5000);
+        }
+
+        // حساب متوسط درجة الندى اليومي من البيانات بالساعة
+        function calculateDailyMeanFromHourly(hourlyData, parameterName) {
+            const dailyMeans = {};
+            if (!hourlyData || !hourlyData.time || !hourlyData[parameterName]) return dailyMeans;
+
+            const dailySums = {};
+            for (let i = 0; i < hourlyData.time.length; i++) {
+                const timestamp = hourlyData.time[i];
+                const value = hourlyData[parameterName][i];
+                const dateKey = timestamp.slice(0,10);
+
+                if (value !== null && !isNaN(value)) {
+                    if (!dailySums[dateKey]) dailySums[dateKey] = {sum:0, count:0};
+                    dailySums[dateKey].sum += value;
+                    dailySums[dateKey].count++;
+                }
+            }
+
+            for (const date in dailySums) {
+                if (dailySums[date].count > 0)
+                    dailyMeans[date] = dailySums[date].sum / dailySums[date].count;
+            }
+
+            return dailyMeans;
+        }
+
+        // تقدير ابتلال الأوراق لكل يوم (LW)
+        function estimateLeafWetness(dateKey,hourlyTime,hourlyTemp, hourlyDew,relative_humidity_2m,precipitation) {
+            let lwHours = 0;
+            for (let i = 0; i < hourlyTemp.length; i++) {
+                const TargetDay = hourlyTime[i].slice(0,10);
+ 
+                if(dateKey==TargetDay)
+                {
+                    const temp = hourlyTemp[i];
+                    const dew = hourlyDew[i];
+                    const rh = relative_humidity_2m[i];
+                    const precip = precipitation[i];
+
+                    if(rh>=90)
+                    {
+                        lwHours++;
+                    }
+                    else if(precip>0)
+                        lwHours++;
+                    else if((rh>=80) && ((temp- dew) <= 2.2))
+                    {
+                        lwHours++;
+                    }
+                }
+            }  
+            return lwHours;
+        }
+
+        async function fetchWeatherData() {
+            if (!userLatitude || !userLongitude) {
+                showStatus('الرجاء تحديد موقعك أولاً', 'error');
+                return null;
+            }
+
+            loadingIndicator.style.display = 'inline-block';
+            fetchWeatherBtn.disabled = true;
+
+            try {
+                const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${userLatitude}&longitude=${userLongitude}&past_days=8&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,wind_speed_10m_max&timezone=auto&hourly=temperature_2m,dew_point_2m,precipitation,relative_humidity_2m`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`خطأ في الشبكة: ${response.status}`);
+                
+                const data = await response.json();
+                if (!data.daily || !data.daily.time) throw new Error('بيانات الطقس غير متوفرة');
+
+                // جمع بيانات ابتلال الأوراق لكل يوم
+                const daysCount = data.daily.time.length;
+                const dailyMeanDew = calculateDailyMeanFromHourly(data.hourly,'dew_point_2m');
+                const dailyTemp = calculateDailyMeanFromHourly(data.hourly,'temperature_2m');
+
+                weatherData = [];
+
+                for (let i = 0; i < daysCount; i++) {
+                    const dateKey = data.daily.time[i];
+
+                    // تقدير ساعات LW
+                    const hourlyTempDay = data.hourly.temperature_2m.filter(t=>t!==null && t!=undefined);
+                    const hourlyDewDay = data.hourly.dew_point_2m.filter(d=>d!==null && d!=undefined);
+                    const hourlyTime=data.hourly.time;
+                    const relative_humidity_2m=data.hourly.relative_humidity_2m.filter(d=>d!==null && d!=undefined);
+                    const precipitation=data.hourly.precipitation.filter(d=>d!==null && d!=undefined);
+
+                    const lw = estimateLeafWetness(dateKey,hourlyTime,hourlyTempDay, hourlyDewDay,relative_humidity_2m,precipitation);
+
+                    weatherData.push({
+                        date: dateKey,
+                        temp_max: data.daily.temperature_2m_max[i],
+                        temp_min: data.daily.temperature_2m_min[i],
+                        temp: (data.daily.temperature_2m_max[i] + data.daily.temperature_2m_min[i])/2,
+                        humidity: data.daily.relative_humidity_2m_max[i],
+                        windSpeed: data.daily.wind_speed_10m_max[i],
+                        LW: lw
+                    });
+                }
+
+                showStatus('تم جلب بيانات الطقس بنجاح', 'success');
+                return weatherData;
+
+            } catch (error) {
+                console.error(error);
+                showStatus(`خطأ في جلب بيانات الطقس: ${error.message}`, 'error');
+                return null;
+            } finally {
+                loadingIndicator.style.display = 'none';
+                fetchWeatherBtn.disabled = false;
+            }
+        }
+
+        // تحقق من وحدة الطقس لمدة 3 أيام
+        function isUnit(window) {
+            const avgTemp = window.reduce((s,d)=>s+d.temp,0)/3;
+            const minTemp = Math.min(...window.map(d=>d.temp_min));
+            const avgHum  = window.reduce((s,d)=>s+d.humidity,0)/3;
+            const maxWind = Math.max(...window.map(d=>d.windSpeed));
+            const lwSum   = window.reduce((s,d)=>s+d.LW,0);
+
+            return (avgTemp <= 25 &&
+                    minTemp <= 14 &&
+                    avgHum >= 70 &&
+                    maxWind >= 30 &&
+                    lwSum >= 30);
+        }
+
+        function analyzeUnits(daysData, requiredUnits) {
+            const units = [];
+            for (let i = 0; i <= daysData.length-3; i++) {
+                const win = daysData.slice(i,i+3);
+                units.push({index:i, start:win[0].date, end:win[2].date, valid:isUnit(win)});
+            }
+
+            // حساب أطول سلسلة من الوحدات الصحيحة
+            let maxChain=0, current=0;
+            for (let u of units) {
+                if (u.valid) { current++; maxChain=Math.max(maxChain,current); }
+                else { current=0; }
+            }
+
+            return {units, detected: maxChain>=requiredUnits, chainLength:maxChain};
+        }
+
+        function updateDataTable(data) {
+            const tableBody = document.getElementById('data-table-body');
+            tableBody.innerHTML = '';
+
+            data.forEach(day=>{
+                const date = new Date(day.date);
+                const formattedDate = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+                const meetsCriteria = (day.temp_min <= 14 && day.temp_max <= 25 && 
+                                       day.humidity >= 70 && 
+                                       day.windSpeed >= 30 && 
+                                       day.LW >= 30);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${day.temp_max.toFixed(1)}</td>
+                    <td>${day.temp_min.toFixed(1)}</td>
+                    <td>${day.humidity}</td>
+                    <td>${day.windSpeed}</td>
+                    <td>${day.LW}</td>
+                    <td style="color:${meetsCriteria?'green':'red'};font-weight:bold">
+                        ${meetsCriteria ? '✓ يستوفي' : '✗ لا يستوفي'}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function displayResults(result, requiredUnits) {
+            const resultBox = document.getElementById('result');
+            if (result.detected) {
+                resultBox.innerHTML = `
+                    <h3 style="color:#155724;">تم الكشف عن الظروف!</h3>
+                    <p>تم العثور على ${result.chainLength} وحدة متتالية من الظروف الجوية المواتية.</p>
+                    <p>تم استيفاء ${requiredUnits} وحدة متتالية مطلوبة.</p>
+                `;
+                resultBox.className='result-box detected';
+            } else {
+                resultBox.innerHTML = `
+                    <h3 style="color:#721c24;">لم يتم الكشف عن الظروف</h3>
+                    <p>تم العثور على ${result.chainLength} وحدة فقط من الظروف الجوية المواتية.</p>
+                    <p>لم يتم استيفاء ${requiredUnits} وحدة متتالية مطلوبة.</p>
+                `;
+                resultBox.className='result-box not-detected';
+            }
+        }
+
+        locationBtn.addEventListener('click', getUserLocation);
+        fetchWeatherBtn.addEventListener('click', async ()=>{
+            const requiredUnits = parseInt(unitsInput.value);
+            if (isNaN(requiredUnits)||requiredUnits<1) { showStatus('الرجاء إدخال عدد صحيح للوحدات', 'error'); return; }
+
+            const weatherData = await fetchWeatherData();
+            if (weatherData && weatherData.length>0) {
+                updateDataTable(weatherData);
+                const result = analyzeUnits(weatherData, requiredUnits);
+                displayResults(result, requiredUnits);
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', getUserLocation);
+    </script>
+</body>
+</html>
+
+
